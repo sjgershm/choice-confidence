@@ -23,14 +23,13 @@ function data = bayes_learn(experiment,cond)
                 for t = 1:nTrials
                     if t == 1 || data(s).block(t)~=data(s).block(t-1)
                         v = [0.5 0.5];
-                        N = [0 0];
+                        N = [2 2];
                     end
                     data(s).V(t,:) = v;
                     c = data(s).choice(t);
                     r = data(s).reward(t);
                     N(c) = N(c) + 1;
-                    lrate = 1/(N(c)+2);
-                    v(c) = lrate*(r-v(c));
+                    v(c) = v(c) + (1/N(c))*(r-v(c));
                 end
             end
             

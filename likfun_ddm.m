@@ -1,14 +1,14 @@
 function [lik, latents] = likfun_ddm(x,data)
     
     % Likelihood function for two-armed bandit task.
-    
-    % USAGE: [lik, latents] = likfun_bandit(x,data)
+    %
+    % USAGE: [lik, latents] = likfun_ddm(x,data)
     %
     % INPUTS:
     %   x - parameters:
     %       x(1) - drift rate differential action value weight (b)
-    %       x(2) - learning rate for state-action values (alpha)
-    %       x(3) - decision threshold (a)
+    %       x(2) - decision threshold (a)
+    %       x(3) - non-decision time (d)
     %   data - structure with the following fields
     %           .c - [N x 1] choices
     %           .r - [N x 1] rewards
@@ -23,19 +23,18 @@ function [lik, latents] = likfun_ddm(x,data)
     %           .P - [N x 1] action probability
     %           .v - [N x 1] drift rate
     %
-    % Sam Gershman, Nov 2015
+    % Sam Gershman, Dec 2016
     
     % set parameters
     b = x(1);           % drift rate differential action value weight
     a = x(2);           % decision threshold
+    if length(x)>2; d = x(3); else d = 0; end
+    data.rt = max(eps,data.rt-d);
     
     lik = 0;
-    V = data.V;
-    
     for n = 1:length(data.choice)
         
-        c = data.choice(n);         % choice
-        v = b*(V(n,1)-V(n,2));      % drift rate
+        v = b*(data.V(n,1)-data.V(n,2));      % drift rate
         
         % accumulate log-likelihod
         if data.choice(n) == 1
@@ -50,6 +49,8 @@ function [lik, latents] = likfun_ddm(x,data)
         if nargout > 1
             latents.v(n,1) = v;
             latents.P(n,1) = P;
+            latents.p(n,1) = 1/(1+exp(-a*v));
+            v = max(v,realmin);
+            latents.rt(n,1) = d + (0.5*a/v)*tanh(0.5*a*v);
         end
-        
     end

@@ -1,4 +1,4 @@
-function results = fit_ddm
+function results = fit_ddm(results)
     
     % Fit RL-DDM model to data from a two-armed bandit task.
     %
@@ -17,14 +17,20 @@ function results = fit_ddm
     % drift rate differential action value weight
     param(1).name = 'b';
     param(1).logpdf = @(x) 0;  % uniorm prior
-    param(1).lb = -20; % lower bound
-    param(1).ub = 20;   % upper bound
+    param(1).lb = -10; % lower bound
+    param(1).ub = 10;  % upper bound
     
     % decision threshold
     param(2).name = 'a';
     param(2).logpdf = @(x) 0;
-    param(2).lb = 1e-3;
-    param(2).ub = 20;
+    param(2).lb = 1e-5;
+    param(2).ub = 5;
+    
+    % non-decision time
+    param(3).name = 'd';
+    param(3).logpdf = @(x) 0;
+    param(3).lb = 1e-9;
+    param(3).ub = 0.5;
     
     % fit model
     experiments = {'bandit' 'leapfrog'};

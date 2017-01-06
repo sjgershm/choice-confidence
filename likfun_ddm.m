@@ -50,7 +50,7 @@ function [lik, latents] = likfun_ddm(x,data)
             latents.v(n,1) = v;
             latents.P(n,1) = P;
             latents.p(n,1) = 1/(1+exp(-a*v));
-            v = max(v,realmin);
+            if v==0; v = realmin; end
             latents.rt(n,1) = d + (0.5*a/v)*tanh(0.5*a*v);
         end
     end

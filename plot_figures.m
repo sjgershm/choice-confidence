@@ -269,7 +269,6 @@ function plot_figures(figname,varargin)
             ylabel('Response time (sec)','FontSize',25);
             
             set(gcf,'Position',[200 200 1200 900]);
-            %tightfig
             
     end
     

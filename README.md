@@ -3,10 +3,6 @@ choice-confidence
 
 Data and analysis functions for Gershman, Goldwater & Otto, "How confidence shapes choice".
 
-Requires the mfit package:
-https://github.com/sjgershm/mfit
-
-
 Data:
 bandit_data.csv: two-armed bandit with stationary binary rewards
 leapfrog_data.csv: two-armed bandit with non-stationary integer-valued rewards

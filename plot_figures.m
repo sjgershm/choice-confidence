@@ -83,132 +83,55 @@ function plot_figures(figname,varargin)
             set(gcf,'Position',[200 200 1400 500]);
             tightfig;
             
-        case 'ddm_param'
-            load results_ddm
-            experiments = {'bandit' 'leapfrog'};
-            for j = 1:length(experiments)
-                group = []; X = [];
-                for i = 1:3
-                    x = results.(experiments{j})(i).x;
-                    m(i,:) = mean(x);
-                    se(i,:) = std(x)./sqrt(size(x,1));
-                    group = [group; zeros(size(x,1),1)+i];
-                    X = [X; x];
-                end
-                plot_param(m,se)
-                [p,~,stats] = anova1(X(:,1),group);
-                [p,~,stats] = anova1(X(:,2),group);
-            end
+        case 'choice_bandit'
             
-        case 'choice_rt_bandit'
-            modes = {'Data' 'Model'};
-            load results_ddm
-            
-            nn = 1;
-            
-            for ii = 1:length(modes)
-                for i = 1:3
-                    data = load_data('bandit_data.csv',i);
-                    P = unique(abs(data(1).R1-data(1).R2));
-                    
-                    for n=1:length(data)
-                        d=abs(data(n).R1-data(n).R2);
-                        for j=1:4
-                            ix = d==P(j);
-                            [~,k] = max([data(n).R1(ix) data(n).R2(ix)],[],2);    % correct choice
-                            switch modes{ii}
-                                case 'Model'
-                                    c = results.bandit(i).latents(n).p(ix);
-                                    c(k==2) = 1-c(k==2);
-                                    p{i}(n,j) = mean(c);
-                                    rt{i}(n,j) = mean(results.bandit(i).latents(n).rt(ix));
-                                case 'Data'
-                                    p{i}(n,j) = nanmean(data(n).choice(ix)==k);
-                                    rt{i}(n,j) = nanmean(data(n).rt(ix));
-                            end
-                        end
+            for i = 1:3
+                data = load_data('bandit_data.csv',i);
+                P = unique(abs(data(1).R1-data(1).R2));
+                
+                for n=1:length(data)
+                    d=abs(data(n).R1-data(n).R2);
+                    for j=1:4
+                        ix = d==P(j);
+                        [~,k] = max([data(n).R1(ix) data(n).R2(ix)],[],2);    % correct choice
+                        p{i}(n,j) = nanmean(data(n).choice(ix)==k);
                     end
-                    
-                    [se_p(:,i),m_p(:,i)] = wse(p{i});
-                    [se_rt(:,i),m_rt(:,i)] = wse(rt{i});
                 end
                 
-                subplot(2,2,nn)
-                myerrorbar(m_p,se_p)
-                L = {'0.4/0.6' '0.3/0.7' '0.2/0.8' '0.1/0.9'};
-                set(gca,'XTickLabel',L,'FontSize',25,'YLim',[0.4 1],'XLim',[0.5 4.5]);
-                hold on; plot(get(gca,'XLim'),[0.5 0.5],'--k','LineWidth',2);
-                ylabel('P(optimal choice)','FontSize',25);
-                xlabel('Reward probabilities','FontSize',25);
-                if nn==1; legend({'Confidence' 'Outcome' 'Control'},'FontSize',20); end
-                title(modes{ii},'FontSize',25,'FontWeight','Bold');
-                
-                subplot(2,2,nn+1)
-                myerrorbar(m_rt,se_rt)
-                L = {'0.4/0.6' '0.3/0.7' '0.2/0.8' '0.1/0.9'};
-                set(gca,'XTickLabel',L,'FontSize',25,'XLim',[0.5 4.5],'YLim',[0.4 1]);
-                ylabel('Response time (sec)','FontSize',25);
-                xlabel('Reward probabilities','FontSize',25);
-                title(modes{ii},'FontSize',25,'FontWeight','Bold');
-                
-                nn = nn + 2;
+                [se_p(:,i),m_p(:,i)] = wse(p{i});
             end
             
-            set(gcf,'Position',[200 200 1200 1000]);
+            myerrorbar(m_p,se_p)
+            L = {'0.4/0.6' '0.3/0.7' '0.2/0.8' '0.1/0.9'};
+            set(gca,'XTickLabel',L,'FontSize',25,'YLim',[0.4 1],'XLim',[0.5 4.5]);
+            hold on; plot(get(gca,'XLim'),[0.5 0.5],'--k','LineWidth',2);
+            ylabel('P(optimal choice)','FontSize',25);
+            xlabel('Reward probabilities','FontSize',25);
+            legend({'Confidence' 'Outcome' 'Control'},'FontSize',20);
             
-        case 'choice_rt_leapfrog'
+        case 'choice_leapfrog'
             
-            modes = {'Data' 'Model'};
-            load results_ddm
-            
-            nn = 1;
-            
-            for ii = 1:2
-                for i = 1:3
-                    data = load_data('leapfrog_data.csv',i);
-                    
-                    p = []; rt = [];
-                    for s = 1:length(data)
-                        R = [data(s).R1 data(s).R2];
-                        [~,mx] = max(R,[],2);
-                        switch modes{ii}
-                            case 'Model'
-                                c = results.leapfrog(i).latents(s).p;
-                                c(mx==2) = 1-c(mx==2);
-                                p(s) = mean(c);
-                                rt(s) = mean(results.leapfrog(i).latents(s).rt);
-                            case 'Data'
-                                p(s) = nanmean(data(s).choice==mx);
-                                rt(s) = nanmean(data(s).rt);
-                        end
-                    end
-                    m(i,1) = mean(p);
-                    se(i,1) = std(p)./sqrt(length(p));
-                    m_rt(i,1) = mean(rt);
-                    se_rt(i,1) = std(rt)./sqrt(length(rt));
-                    P{i} = p;
-                    RT{i} = rt;
-                    clear p rt
+            for i = 1:3
+                data = load_data('leapfrog_data.csv',i);
+                
+                p = []; rt = [];
+                for s = 1:length(data)
+                    R = [data(s).R1 data(s).R2];
+                    [~,mx] = max(R,[],2);
+                    p(s) = nanmean(data(s).choice==mx);
+                    rt(s) = nanmean(data(s).rt);
                 end
-                
-                subplot(2,2,nn);
-                myerrorbar(m',se','o');
-                L = {'Confidence' 'Outcome' 'Control'};
-                set(gca,'XTick',1:3,'XTickLabel',L,'FontSize',25,'XLim',[0.5 3.5],'YLim',[0.4 1]);
-                hold on; plot(get(gca,'XLim'),[0.5 0.5],'--k','LineWidth',2);
-                ylabel('P(optimal choice)','FontSize',25);
-                title(modes{ii},'FontSize',25,'FontWeight','Bold');
-                
-                subplot(2,2,nn+1);
-                myerrorbar(m_rt',se_rt','o');
-                set(gca,'XTick',1:3,'XTickLabel',L,'FontSize',25,'XLim',[0.5 3.5],'YLim',[0.4 1]);
-                ylabel('Response time (ms)','FontSize',25);
-                title(modes{ii},'FontSize',25,'FontWeight','Bold');
-                
-                nn = nn + 2;
+                m(i,1) = mean(p);
+                se(i,1) = std(p)./sqrt(length(p));
+                P{i} = p;
+                clear p
             end
             
-            set(gcf,'Position',[200 200 1200 1000]);
+            myerrorbar(m',se','o');
+            L = {'Confidence' 'Outcome' 'Control'};
+            set(gca,'XTick',1:3,'XTickLabel',L,'FontSize',25,'XLim',[0.5 3.5],'YLim',[0.4 1]);
+            hold on; plot(get(gca,'XLim'),[0.5 0.5],'--k','LineWidth',2);
+            ylabel('P(optimal choice)','FontSize',25);
             
         case 'conf'
             experiment = varargin{1};
@@ -229,13 +152,12 @@ function plot_figures(figname,varargin)
                     for i = 2:length(q)
                         ix = data(s).postjudgment <= q(i) & data(s).postjudgment > q(i-1);
                         Q{j}(s,i-1) = nanmean(data(s).choice(ix)==mx(ix));
-                        RT{j}(s,i-1) = nanmean(data(s).rt(ix));
                     end
                 end
             end
             
             figure;
-            subplot(2,2,1);
+            subplot(1,2,1);
             [se,m] = wse(Q{1});
             errorbar(m,se,'-ok','LineWidth',4,'MarkerSize',10,'MarkerFaceColor','w');
             set(gca,'XLim',[0.5 4.5],'YLim',[0.4 1],'XTick',1:4,'XTickLabel',{'0-25' '26-50' '51-75' '76-100'},'FontSize',25);
@@ -244,15 +166,7 @@ function plot_figures(figname,varargin)
             xlabel('Confidence judgment quartile','FontSize',25);
             ylabel('P(optimal choice)','FontSize',25);
             
-            subplot(2,2,2);
-            [se,m] = wse(RT{1});
-            errorbar(m,se,'-ok','LineWidth',4,'MarkerSize',10,'MarkerFaceColor','w');
-            set(gca,'YLim',[0.5 1],'XLim',[0.5 4.5],'XTick',1:4,'XTickLabel',{'0-25' '26-50' '51-75' '76-100'},'FontSize',25);
-            xlabel('Confidence judgment quartile','FontSize',25);
-            ylabel('Response time (sec)','FontSize',25);
-            set(gcf,'Position',[200 200 1200 400]);
-            
-            subplot(2,2,3);
+            subplot(1,2,2);
             [se,m] = wse(Q{2});
             errorbar(m,se,'-ok','LineWidth',4,'MarkerSize',10,'MarkerFaceColor','w');
             set(gca,'XLim',[0.5 4.5],'YLim',[0.4 1],'XTick',1:4,'XTickLabel',{'0-25' '26-50' '51-75' '76-100'},'FontSize',25);
@@ -261,14 +175,7 @@ function plot_figures(figname,varargin)
             xlabel('Outcome judgment quartile','FontSize',25);
             ylabel('P(optimal choice)','FontSize',25);
             
-            subplot(2,2,4);
-            [se,m] = wse(RT{2});
-            errorbar(m,se,'-ok','LineWidth',4,'MarkerSize',10,'MarkerFaceColor','w');
-            set(gca,'YLim',[0.5 1],'XLim',[0.5 4.5],'XTick',1:4,'XTickLabel',{'0-25' '26-50' '51-75' '76-100'},'FontSize',25);
-            xlabel('Outcome judgment quartile','FontSize',25);
-            ylabel('Response time (sec)','FontSize',25);
-            
-            set(gcf,'Position',[200 200 1200 900]);
+            set(gcf,'Position',[200 200 1200 400]);
             
     end
     

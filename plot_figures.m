@@ -181,27 +181,6 @@ function plot_figures(figname,varargin)
     
 end
 
-%%%%%%%%%%%%%
-
-function plot_param(m,se)
-    C = linspecer(3);
-    figure;
-    names = {'Drift rate' 'Threshold'};
-    for j = 1:2
-        subplot(1,2,j);
-        for i = 1:3
-            errbar(i,m(i,j),se(i,j),'LineWidth',5,'Color',C(i,:));
-            hold on;
-            plot(i,m(i,j),'o','LineWidth',5,'MarkerSize',12,'MarkerFaceColor',C(i,:),'Color',C(i,:));
-            
-        end
-        set(gca,'XTick',1:3,'XTickLabel',{'Confidence' 'Outcome' 'Control'},'FontSize',25,'XLim',[0.5 3.5]);
-        ylabel(names{j},'FontSize',25);
-    end
-    set(gcf,'Position',[200 200 1200 400]);
-    tightfig;
-end
-
 function myerrorbar(m,se,marker)
     if nargin < 3; marker = '-'; end
     C = linspecer(3);
